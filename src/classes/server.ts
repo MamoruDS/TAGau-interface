@@ -1,4 +1,6 @@
 import { genID, zip } from '../utils'
+
+import { ITFBase } from '.'
 import { SData } from './base'
 
 type ServerITF = {
@@ -7,15 +9,16 @@ type ServerITF = {
     pin: string
 }
 
-class ServerCtl {
+class ServerCtl extends ITFBase<ServerITF> {
     private _servers: SData<ServerITF>[]
     constructor() {
+        super()
         this._servers = []
     }
-    async list(_: string[]): Promise<SData<ServerITF>[]> {
+    async list(_: string[]) {
         return this._servers
     }
-    async add(_: string[], data: ServerITF[]): Promise<SData<ServerITF>[]> {
+    async add(_: string, data: ServerITF[]) {
         const p: SData<ServerITF>[] = []
         for (const i of data) {
             p.push({ ...i, id: genID('server') })
@@ -25,18 +28,14 @@ class ServerCtl {
         }
         return p
     }
-    async get(_: string[], id: string[]): Promise<SData<ServerITF>[]> {
+    async get(_: string[], id: string[]) {
         const p: SData<ServerITF>[] = []
         for (const i of id) {
             p.push(this._servers.filter((s) => s.id == i)[0])
         }
         return p
     }
-    async mod(
-        _: string[],
-        id: string[],
-        data: ServerITF[]
-    ): Promise<SData<ServerITF>[]> {
+    async mod(_: string, id: string[], data: ServerITF[]) {
         const p: SData<ServerITF>[] = []
         zip(id, data).map((e) => {
             p.push(
@@ -47,6 +46,9 @@ class ServerCtl {
             )
         })
         return p
+    }
+    async del(_: string, id: string[]) {
+        this._servers = this._servers.filter((s) => id.indexOf(s.id) == -1)
     }
 }
 
