@@ -1,6 +1,8 @@
 import { zip } from '../utils'
 import { Request } from '../request'
 
+import { ITFBase } from '.'
+
 type ClassInterface = {
     [key in string]: {
         t: any
@@ -33,11 +35,12 @@ type CFilter<T extends object> = {
     }
 }
 
-class Base<T extends object> {
+class Base<T extends object> extends ITFBase<T> {
     private _request: Request
     protected _resource: string
     protected _apiVersion: string
     constructor(request: Request, apiVersion: string, resource: string) {
+        super()
         this._request = request
         this._resource = resource
         this._apiVersion = apiVersion
