@@ -68,7 +68,7 @@ const Resource = {
 
 export { ITFBase, CFilter, SData, NotImplementedError }
 
-export { Resource }
+export { Connect } from '../connect'
 
-export { TagCtl, TargetCtl, BindCtl, ServerCtl }
+export { TagCtl, TargetCtl, BindCtl, ServerCtl, Resource }
 export { Special } from './specials'

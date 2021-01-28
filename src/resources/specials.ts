@@ -1,13 +1,13 @@
-import { Request } from '../request'
+import { Connect } from '.'
 
 class Special {
-    private _request: Request
-    constructor(request: Request) {
-        this._request = request
+    private _connect: Connect
+    constructor(conn: Connect) {
+        this._connect = conn
     }
     protected async _query(path: string[], data?: object[], target?: string[]) {
         try {
-            return await this._request.open(
+            return await this._connect.open(
                 'POST',
                 {
                     url: path.join('/'),

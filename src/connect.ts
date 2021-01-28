@@ -2,40 +2,24 @@ import * as http from 'http'
 import * as https from 'https'
 import axios from 'axios'
 
-import { genID } from './utils'
+import { ServerCtl } from './resources'
 
-const source = axios.CancelToken.source()
+// const source = axios.CancelToken.source()
 const instance = axios.create({
     httpAgent: new http.Agent({ keepAlive: true }),
     httpsAgent: new https.Agent({ keepAlive: true }),
 })
 
-class Server {
-    readonly id: string
-    readonly addr: string
-    token: string
-    constructor(addr: string, token?: string) {
-        this.id = genID('server')
-        this.addr = addr
-        this.token = token
-    }
-}
-
-class Request {
-    private _servers: Server[]
+class Connect {
+    private _server: ServerCtl
     private _timeout: number
     constructor() {
-        this._servers = []
+        this._server = new ServerCtl()
     }
-    get servers(): Server[] {
-        return this._servers
+    get server(): ServerCtl {
+        return this._server
     }
-    addServer(addr: string, token?: string): Server {
-        const s = new Server(addr, token)
-        this._servers.unshift(s)
-        return s
-    }
-    timeout(v: number): Request {
+    timeout(v: number): Connect {
         this._timeout = v
         return this
     }
@@ -49,7 +33,7 @@ class Request {
         headers: {} = {}
     ) {
         const res = []
-        for (const s of this._servers) {
+        for (const s of await this._server.list([])) {
             if (targets.length != 0 && targets.indexOf(s.id) == -1) continue
             res.push(
                 await this._open(method, {
@@ -105,4 +89,4 @@ class Request {
     }
 }
 
-export { Request, Server }
+export { Connect }

@@ -1,5 +1,4 @@
-import { ITFBase, CFilter } from '.'
-import { Request } from '../request'
+import { ITFBase, CFilter, Connect } from '.'
 import { Base } from './base'
 
 type TagITF = {
@@ -10,8 +9,8 @@ type TagITF = {
 }
 
 class TagCtl extends Base<TagITF> {
-    constructor(request: Request, apiVersion: string) {
-        super(request, apiVersion, 'tag')
+    constructor(conn: Connect, apiVersion: string) {
+        super(conn, apiVersion, 'tag')
     }
     async list(servers: string[]) {
         return this._list(servers)

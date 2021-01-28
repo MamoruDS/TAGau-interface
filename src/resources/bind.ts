@@ -1,5 +1,4 @@
-import { Request } from '../request'
-import { CFilter } from '.'
+import { CFilter, Connect } from '.'
 import { Base } from './base'
 
 interface BandITF {
@@ -11,8 +10,8 @@ interface BandITF {
 }
 
 class BindCtl extends Base<BandITF> {
-    constructor(request: Request, apiVersion: string) {
-        super(request, apiVersion, 'bind')
+    constructor(conn: Connect, apiVersion: string) {
+        super(conn, apiVersion, 'bind')
     }
     async list(servers: string[]) {
         return this._list(servers)

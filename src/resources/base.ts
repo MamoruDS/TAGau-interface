@@ -1,20 +1,19 @@
 import { zip } from '../utils'
-import { Request } from '../request'
-import { ITFBase, CFilter, SData } from '.'
+import { ITFBase, CFilter, SData, Connect } from '.'
 
 class Base<T extends object> extends ITFBase<T> {
-    private _request: Request
+    private _connect: Connect
     protected _resource: string
     protected _apiVersion: string
-    constructor(request: Request, apiVersion: string, resource: string) {
+    constructor(conn: Connect, apiVersion: string, resource: string) {
         super()
-        this._request = request
+        this._connect = conn
         this._resource = resource
         this._apiVersion = apiVersion
     }
     protected async _query(method: string, data?: object[], target?: string[]) {
         try {
-            return await this._request.open(
+            return await this._connect.open(
                 'POST',
                 {
                     // url: `${this._resource}/${method}`,

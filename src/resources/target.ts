@@ -1,4 +1,4 @@
-import { Request } from '../request'
+import { Connect } from '.'
 import { Base } from './base'
 
 type TargetITF = {
@@ -13,8 +13,8 @@ type TargetITF = {
 }
 
 class TargetCtl extends Base<TargetITF> {
-    constructor(request: Request, apiVersion: string) {
-        super(request, apiVersion, 'file')
+    constructor(conn: Connect, apiVersion: string) {
+        super(conn, apiVersion, 'file')
     }
     async list(servers: string[]) {
         return this._list(servers)
