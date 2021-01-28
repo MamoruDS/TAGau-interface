@@ -1,5 +1,6 @@
 import { Request } from '../request'
-import { Base, CFilter } from './base'
+import { CFilter } from '.'
+import { Base } from './base'
 
 interface BandITF {
     lhs: string

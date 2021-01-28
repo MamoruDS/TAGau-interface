@@ -1,39 +1,6 @@
 import { zip } from '../utils'
 import { Request } from '../request'
-
-import { ITFBase } from '.'
-
-type ClassInterface = {
-    [key in string]: {
-        t: any
-        fa: boolean
-    }
-}
-
-type SData<T> = {
-    [key in keyof T | 'id']: key extends keyof T ? T[key] : string
-}
-
-type DataOf<T extends ClassInterface> = {
-    [k in keyof T]: T[k]['t']
-}
-
-type Pattern<T> = string extends T ? (number extends T ? never : T) : T
-
-type NonPattern<T> = string extends T ? T : number extends T ? T : never
-
-type Repeatable<T> = NonPattern<T> extends never ? never : T[]
-
-type NPRepeat<T> = NonPattern<T> extends never ? T : T[]
-
-type CFilter<T extends object> = {
-    allow: {
-        [key in keyof T]: NPRepeat<T[key]>
-    }
-    deny: {
-        [key in keyof T]: NPRepeat<T[key]>
-    }
-}
+import { ITFBase, CFilter, SData } from '.'
 
 class Base<T extends object> extends ITFBase<T> {
     private _request: Request
@@ -113,5 +80,3 @@ class Base<T extends object> extends ITFBase<T> {
 }
 
 export { Base }
-
-export { CFilter, ClassInterface, DataOf, SData }

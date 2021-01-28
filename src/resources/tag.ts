@@ -1,6 +1,6 @@
-import { ITFBase } from '.'
+import { ITFBase, CFilter } from '.'
 import { Request } from '../request'
-import { Base, CFilter } from './base'
+import { Base } from './base'
 
 type TagITF = {
     name: string

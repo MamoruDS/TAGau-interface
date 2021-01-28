@@ -1,7 +1,5 @@
 import { genID, zip } from '../utils'
-
-import { ITFBase } from '.'
-import { SData } from './base'
+import { ITFBase, SData } from '.'
 
 type ServerITF = {
     addr: string
