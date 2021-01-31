@@ -1,5 +1,5 @@
 import { zip } from '../utils'
-import { ITFBase, CFilter, SData, Connect } from '.'
+import { ITFBase, CFilter, SData, Connect, CoreResponse } from '.'
 
 class Base<T extends object> extends ITFBase<T> {
     private _connect: Connect
@@ -11,12 +11,11 @@ class Base<T extends object> extends ITFBase<T> {
         this._resource = resource
         this._apiVersion = apiVersion
     }
-    protected async _query(method: string, data?: object[], target?: string[]) {
+    protected async _query(method: string, data?: object[], server?: string[]) {
         try {
-            return await this._connect.open(
+            return await this._connect.open<T>(
                 'POST',
                 {
-                    // url: `${this._resource}/${method}`,
                     url: [this._apiVersion, this._resource, method]
                         .filter((r) => r)
                         .join('/'),
@@ -24,56 +23,64 @@ class Base<T extends object> extends ITFBase<T> {
                         input: data,
                     },
                 },
-                target
+                server
             )
         } catch (e) {
-            console.log('error happened during open')
-            // console.error(e)
+            throw e // TODO:
         }
     }
-    protected async _list(targets: string[]): Promise<SData<T>[]> {
-        return await this._query('list', [], targets)
+    protected async _list(server: string[]): Promise<CoreResponse<SData<T>>[]> {
+        return await this._query('list', [], server)
     }
     protected async _filter(
-        targets: string[],
+        server: string[],
         filters: CFilter<T>[],
         depths: number[]
-    ): Promise<SData<T>[]> {
+    ): Promise<CoreResponse<SData<T>>[]> {
         // TODO:
         return await this._query(
             'filter',
             zip(filters, depths).map((e) =>
                 Object.assign({}, { ...e[0], depth: e[1] })
             ),
-            targets
+            server
         )
     }
-    protected async _add(target: string, data: T[]): Promise<SData<T>[]> {
-        return await this._query('add', data, [target])
+    protected async _add(
+        server: string,
+        data: T[]
+    ): Promise<CoreResponse<SData<T>>[]> {
+        return await this._query('add', data, [server])
     }
-    protected async _get(targets: string[], id: string[]): Promise<SData<T>[]> {
+    protected async _get(
+        server: string[],
+        id: string[]
+    ): Promise<CoreResponse<SData<T>>[]> {
         return await this._query(
             'list',
             id.map((i) => Object.assign({}, { id: i })),
-            targets
+            server
         )
     }
     protected async _mod(
-        target: string,
+        server: string,
         id: string[],
         data: T[]
-    ): Promise<SData<T>[]> {
+    ): Promise<CoreResponse<SData<T>>[]> {
         return await this._query(
             'mod',
             zip(id, data).map((e) => Object.assign({}, { ...e[1], id: e[0] })),
-            [target]
+            [server]
         )
     }
-    protected async _del(target: string, id: string[]): Promise<void> {
-        await this._query(
+    protected async _del(
+        server: string,
+        id: string[]
+    ): Promise<CoreResponse<SData<T>>[]> {
+        return await this._query(
             'del',
             id.map((i) => Object.assign({}, { id: i })),
-            [target]
+            [server]
         )
     }
 }
