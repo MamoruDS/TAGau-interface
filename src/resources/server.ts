@@ -1,5 +1,8 @@
+import { EventEmitter } from 'events'
+
+import { ITFBase, SData, CoreResponse, ERR_CODE } from '.'
 import { genID, zip } from '../utils'
-import { ITFBase, SData } from '.'
+import { CoreResponseBad } from '../connect'
 
 type ServerITF = {
     addr: string
@@ -7,49 +10,125 @@ type ServerITF = {
     pin: string
 }
 
+class _CRDataCtor {
+    good: SData<ServerITF>[]
+    bad: CoreResponseBad[]
+    constructor() {
+        this.good = []
+        this.bad = []
+    }
+    done(): CoreResponse<SData<ServerITF>>[] {
+        return [
+            {
+                server_id: '_',
+                ok: true,
+                status: 200,
+                good: this.good,
+                bad: this.bad,
+            },
+        ]
+    }
+    _arr<T extends object>(input: T | T[]): T[] {
+        return Array.isArray(input) ? input : [input]
+    }
+    pushG(input: SData<ServerITF> | SData<ServerITF>[]): _CRDataCtor {
+        this.good = [...this.good, ...this._arr(input)]
+        return this
+    }
+    pushB(input: CoreResponseBad | CoreResponseBad[]): _CRDataCtor {
+        this.bad = [...this.bad, ...this._arr(input)]
+        return this
+    }
+}
+
 class ServerCtl extends ITFBase<ServerITF> {
     private _servers: SData<ServerITF>[]
+    _event: EventEmitter
     constructor() {
         super()
         this._servers = []
+        this._event = new EventEmitter()
+    }
+    _apply(servers: SData<ServerITF>[]): SData<ServerITF>[] {
+        const p: SData<ServerITF>[] = []
+        for (const s of servers) {
+            this._servers.push(s)
+            p.push(s)
+        }
+        return p
+    }
+    _findOne(id: string): [SData<ServerITF>, number] {
+        let i: number = -1
+        for (const si in this._servers) {
+            if (this._servers[si].id == id) {
+                i = parseInt(si)
+                break
+            }
+        }
+        return [this._servers[i], i]
     }
     async list(_: string[]) {
-        return this._servers
+        return new _CRDataCtor().pushG(this._servers).done()
     }
     async add(_: string, data: ServerITF[]) {
-        const p: SData<ServerITF>[] = []
+        const res = new _CRDataCtor()
         for (const i of data) {
-            p.push({ ...i, id: genID('server') })
-        }
-        for (const s of p) {
+            const s = { ...i, id: genID('server') }
             this._servers.push(s)
+            res.pushG(s)
         }
-        return p
+        if (res.good.length) this._event.emit('modified')
+        return res.done()
     }
     async get(_: string[], id: string[]) {
-        const p: SData<ServerITF>[] = []
+        const res = new _CRDataCtor()
         for (const i of id) {
-            p.push(this._servers.filter((s) => s.id == i)[0])
+            const [s, idx] = this._findOne(i)
+            if (idx == -1) {
+                res.pushB({
+                    id: i,
+                    err_code: ERR_CODE.NOT_FOUND,
+                })
+            } else {
+                res.pushG(s)
+            }
         }
-        return p
+        return res.done()
     }
     async mod(_: string, id: string[], data: ServerITF[]) {
-        const p: SData<ServerITF>[] = []
-        zip(id, data).map((e) => {
-            p.push(
-                Object.assign(
-                    this._servers.filter((s) => s.id == e[0])[0],
-                    e[1]
-                )
-            )
+        const res = new _CRDataCtor()
+        zip(id, data).map(([i, d]) => {
+            const [s, idx] = this._findOne(i)
+            if (idx == -1) {
+                res.pushB({
+                    id: i,
+                    err_code: ERR_CODE.NOT_FOUND,
+                })
+            } else {
+                res.pushG(Object.assign(this._servers[idx], d))
+            }
         })
-        return p
+        if (res.good.length) this._event.emit('modified')
+        return res.done()
     }
     async del(_: string, id: string[]) {
-        this._servers = this._servers.filter((s) => id.indexOf(s.id) == -1)
+        const res = new _CRDataCtor()
+        for (const i of id) {
+            const [_, idx] = this._findOne(i)
+            if (idx == -1) {
+                res.pushB({
+                    id: i,
+                    err_code: ERR_CODE.NOT_FOUND,
+                })
+            } else {
+                res.pushG(this._servers.splice(idx, 1)[0])
+            }
+        }
+        if (res.good.length) this._event.emit('modified')
+        return res.done()
     }
 }
 
 class Server {}
 
-export { ServerCtl, Server }
+export { ServerCtl, ServerITF, Server }
