@@ -65,7 +65,6 @@ import { TargetCtl } from './target'
 import { BindCtl } from './bind'
 import { ServerCtl, ServerITF } from './server'
 import { CoreResponse } from '../connect'
-import { type } from 'os'
 
 type Server = SData<ServerITF>
 
@@ -79,6 +78,7 @@ const Resource = {
 export { ITFBase, CFilter, SData, ResponseData, NotImplementedError }
 
 export { Connect } from '../connect'
+export { ERR_CODE } from '../constant'
 
 export { TagCtl, TargetCtl, BindCtl, ServerCtl, Server, Resource, CoreResponse }
 export { Special } from './specials'
