@@ -33,7 +33,7 @@ class TagCtl extends Base<TagITF> {
         return this._mod(server, id, inf)
     }
     async del(server: string, id: string[]) {
-        this._del(server, id)
+        return this._del(server, id)
     }
 }
 
