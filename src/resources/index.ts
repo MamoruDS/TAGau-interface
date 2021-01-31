@@ -1,6 +1,8 @@
-type SData<T> = {
-    [key in keyof T | 'id']: key extends keyof T ? T[key] : string
+type SData<T> = Partial<T> & {
+    id: string
 }
+
+type ResponseData<T> = CoreResponse<SData<T>>
 
 type Pattern<T> = string extends T ? (number extends T ? never : T) : T
 
@@ -27,26 +29,30 @@ class NotImplementedError extends Error {
 
 class ITFBase<T extends object> {
     constructor() {}
-    list(servers: string[]): Promise<SData<T>[]> {
+    list(servers: string[]): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
     filter(
         servers: string[],
         filter: CFilter<T>[],
         depth: number[]
-    ): Promise<SData<T>[]> {
+    ): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
-    add(server: string, data: T[]): Promise<SData<T>[]> {
+    add(server: string, data: T[]): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
-    get(servers: string[], id: string[]): Promise<SData<T>[]> {
+    get(servers: string[], id: string[]): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
-    mod(server: string, id: string[], data: T[]): Promise<SData<T>[]> {
+    mod(
+        server: string,
+        id: string[],
+        data: T[]
+    ): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
-    del(server: string, id: string[]): Promise<void> {
+    del(server: string, id: string[]): Promise<CoreResponse<SData<T>>[]> {
         throw new NotImplementedError('')
     }
     raw(server: string, id: string, length?: number): Promise<any> {
@@ -57,7 +63,11 @@ class ITFBase<T extends object> {
 import { TagCtl } from './tag'
 import { TargetCtl } from './target'
 import { BindCtl } from './bind'
-import { ServerCtl } from './server'
+import { ServerCtl, ServerITF } from './server'
+import { CoreResponse } from '../connect'
+import { type } from 'os'
+
+type Server = SData<ServerITF>
 
 const Resource = {
     bind: BindCtl,
@@ -66,9 +76,9 @@ const Resource = {
     server: ServerCtl,
 }
 
-export { ITFBase, CFilter, SData, NotImplementedError }
+export { ITFBase, CFilter, SData, ResponseData, NotImplementedError }
 
 export { Connect } from '../connect'
 
-export { TagCtl, TargetCtl, BindCtl, ServerCtl, Resource }
+export { TagCtl, TargetCtl, BindCtl, ServerCtl, Server, Resource, CoreResponse }
 export { Special } from './specials'
