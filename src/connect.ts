@@ -2,13 +2,36 @@ import * as http from 'http'
 import * as https from 'https'
 import axios from 'axios'
 
-import { ServerCtl } from './resources'
+import { SData, ServerCtl } from './resources'
 
-// const source = axios.CancelToken.source()
+const _ = axios.CancelToken.source()
 const instance = axios.create({
     httpAgent: new http.Agent({ keepAlive: true }),
     httpsAgent: new https.Agent({ keepAlive: true }),
 })
+
+type CoreResponseBad = {
+    id: string
+    err_code: number
+}
+
+type CoreResponseGood = {
+    [key: string]: any
+}
+
+type CoreResponse<T extends CoreResponseGood = {}> = {
+    server_id: string
+    ok: boolean
+    status: number
+    good: T[]
+    bad: CoreResponseBad[]
+}
+
+class CoreConnError extends Error {
+    constructor() {
+        super()
+    }
+}
 
 class Connect {
     private _server: ServerCtl
@@ -23,7 +46,7 @@ class Connect {
         this._timeout = v
         return this
     }
-    async open(
+    async open<T>(
         method: 'DELETE' | 'GET' | 'POST' | 'PUT',
         options: {
             url?: string
@@ -31,11 +54,18 @@ class Connect {
         },
         targets: string[] = [],
         headers: {} = {}
-    ) {
-        const res = []
-        for (const s of await this._server.list([])) {
+    ): Promise<CoreResponse<SData<T>>[]> {
+        const res: CoreResponse<SData<T>>[] = []
+        for (const s of (await this._server.list([]))[0].good) {
             if (targets.length != 0 && targets.indexOf(s.id) == -1) continue
-            res.push(
+            const cr = {
+                server_id: s.id,
+                ok: true,
+                status: undefined,
+                good: [],
+                bad: [],
+            } as CoreResponse<SData<T>>
+            try {
                 await this._open(method, {
                     ...options,
                     baseURL: s.addr,
@@ -55,7 +85,15 @@ class Connect {
                             ? options.data
                             : undefined,
                 })
-            )
+            } catch (e) {
+                if (e.toJSON()?.code == 'ECONNREFUSED') {
+                    cr.ok = false
+                    cr.status = 404
+                } else {
+                    throw e // TODO:
+                }
+            }
+            res.push(cr)
         }
         return res
     }
@@ -89,4 +127,4 @@ class Connect {
     }
 }
 
-export { Connect }
+export { Connect, CoreResponseBad, CoreResponse, CoreConnError }
