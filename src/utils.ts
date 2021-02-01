@@ -1,3 +1,6 @@
+import * as fs from 'fs'
+import * as process from 'process'
+
 const _IDF = {
     ts_radix: 16,
     prefix_length_min: 1,
@@ -43,4 +46,43 @@ function zip<T>(...L: T[][]): any[][] {
     return z
 }
 
-export { genID, zip }
+class Config<C extends object> {
+    readonly path: string
+    private _data: C
+    constructor(path: string, df: C) {
+        this.path = path
+        this._data = this._read(df)
+    }
+    get data(): C {
+        return this._data
+    }
+    private _read(df: C = {} as C): C {
+        if (!fs.existsSync(this.path)) {
+            this._write(df)
+            return df
+        }
+        if (!fs.lstatSync(this.path).isFile) {
+            // panic
+            process.exit(1)
+        }
+        return Object.assign(
+            df,
+            JSON.parse(fs.readFileSync(this.path, { encoding: 'utf-8' }))
+        )
+    }
+    private _write(data?: C): void {
+        fs.writeFileSync(
+            this.path,
+            JSON.stringify(data ?? this._data, null, 4),
+            {
+                encoding: 'utf-8',
+            }
+        )
+    }
+    update(data: C): void {
+        this._data = Object.assign(this._data, data)
+        this._write()
+    }
+}
+
+export { genID, zip, Config }
