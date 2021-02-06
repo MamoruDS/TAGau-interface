@@ -27,6 +27,8 @@ type CoreResponse<T extends CoreResponseGood = {}> = {
     bad: CoreResponseBad[]
 }
 
+type AllowedMethods = 'DELETE' | 'POST' | 'PUT' | 'PATCH'
+
 class CoreConnError extends Error {
     constructor() {
         super()
@@ -47,7 +49,7 @@ class Connect {
         return this
     }
     async open<T>(
-        method: 'DELETE' | 'GET' | 'POST' | 'PUT',
+        method: AllowedMethods,
         options: {
             url?: string
             data: { [key in string]: any }
@@ -76,14 +78,7 @@ class Connect {
                         'User-Agent': 'TAGau-interface',
                         ...headers,
                     },
-                    data:
-                        method == 'GET' || method == 'DELETE'
-                            ? undefined
-                            : options.data,
-                    params:
-                        method == 'GET' || method == 'DELETE'
-                            ? options.data
-                            : undefined,
+                    data: options.data,
                 })
             } catch (e) {
                 if (e.toJSON()?.code == 'ECONNREFUSED') {
@@ -98,7 +93,7 @@ class Connect {
         return res
     }
     _open(
-        method: 'DELETE' | 'GET' | 'POST' | 'PUT',
+        method: AllowedMethods,
         options: {
             baseURL: string
             headers: { [key in string]: string }
