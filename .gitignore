@@ -2,3 +2,10 @@
 
 /build
 /dist
+
+/.vscode
+/local
+
+.eslintcache
+
+package-lock.json
