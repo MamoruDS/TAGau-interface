@@ -6,7 +6,7 @@ import {
 } from 'tagau-res'
 
 import { ID, QueryerID, ResTypes } from './main'
-import { ItemNotExist } from './main'
+import { ItemNotExist, InvalidRequest } from './main'
 import { ERR_CODE } from './constant'
 
 import { genID, zip } from './utils'
@@ -349,10 +349,10 @@ class QueryerLocal<T extends Record<string, unknown>>
                     )
                 }
             }
+            r.ok = true
         } else {
-            // TODO: throw new error
+            throw new InvalidRequest('expected "data" as array') // TODO:
         }
-        r.ok = true
         return r
     }
     async query(
