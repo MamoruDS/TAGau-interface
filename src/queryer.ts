@@ -231,9 +231,10 @@ class QueryerLocal<T extends Record<string, unknown>>
     ): (Partial<T> & { id: ID })[] {
         const arr = []
         for (const id of Object.keys(data)) {
+            const d = (data[id] as {}) ?? {}
             arr.push({
                 id,
-                ...data,
+                ...d,
             })
         }
         return arr
@@ -247,16 +248,16 @@ class QueryerLocal<T extends Record<string, unknown>>
     ): { good: U[]; bad: { id: ID; err_code: number }[] } {
         for (const d of data) {
             try {
-                fn(d).map((r) => good.push(r))
+                fn({ ...d }).map((r) => good.push(r))
             } catch (e) {
                 if (e instanceof ItemNotExist) {
-                    fb(d).map(({ id }) =>
+                    fb({ ...d }).map(({ id }) =>
                         bad.push({ id, err_code: ERR_CODE.NOT_FOUND })
                     )
                 } else {
                     // TODO: other error
                     // throw e
-                    fb(d).map(({ id }) =>
+                    fb({ ...d }).map(({ id }) =>
                         bad.push({ id, err_code: ERR_CODE.UNKNOWN })
                     )
                 }
@@ -317,39 +318,35 @@ class QueryerLocal<T extends Record<string, unknown>>
             }
             if (method == 'PUT') {
                 if (data.length) {
-                    for (const d of data) {
-                        this._promisedProfileMan(
-                            data,
-                            (d) => {
-                                const id = d['id']
-                                delete d['id']
-                                return this._convertProfile(
-                                    profile._update(rt, id, d)
-                                )
-                            },
-                            ({ id }) => [{ id }],
-                            r.good,
-                            r.bad
-                        )
-                    }
+                    this._promisedProfileMan(
+                        data,
+                        (d) => {
+                            const id = d['id']
+                            delete d['id']
+                            return this._convertProfile(
+                                profile._update(rt, id, d)
+                            )
+                        },
+                        ({ id }) => [{ id }],
+                        r.good,
+                        r.bad
+                    )
                 }
             }
             if (method == 'DELETE') {
                 if (data.length) {
-                    for (const d of data) {
-                        this._promisedProfileMan(
-                            data,
-                            ({ id }) => {
-                                profile._remove(rt, id)
-                                return this._convertProfile({ id })
-                            },
-                            ({ id }) => {
-                                return [{ id }]
-                            },
-                            r.good,
-                            r.bad
-                        )
-                    }
+                    this._promisedProfileMan(
+                        data,
+                        ({ id }) => {
+                            profile._remove(rt, id)
+                            return this._convertProfile({ id })
+                        },
+                        ({ id }) => {
+                            return [{ id }]
+                        },
+                        r.good,
+                        r.bad
+                    )
                 }
             }
         } else {
